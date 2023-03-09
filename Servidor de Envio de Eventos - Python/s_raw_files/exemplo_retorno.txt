@@ -1,0 +1,41 @@
+
+--myboundary
+Content-Type: text/plain
+Content-Length: 767
+
+{
+   "Events" : [
+      {
+         "Action" : "Start",
+         "Code" : "_FingerPrintCollect_",
+         "Data" : {
+            "Authority" : 2,
+            "CitizenIDNo" : "",
+            "Doors" : [ 0 ],
+            "FirstEnterDoors" : [ -1 ],
+            "IsFirstEnter" : false,
+            "Password" : "",
+            "SpecialDaysSchedule" : [ 255 ],
+            "TimeSections" : [ 255 ],
+            "UseTime" : 200,
+            "UserID" : "2",
+            "UserName" : "",
+            "UserStatus" : 0,
+            "UserType" : 0,
+            "ValidFrom" : "2020-02-07 15:18:26",
+            "ValidTo" : "2037-12-31 23:59:59"
+         },
+         "Index" : 0,
+         "PhysicalAddress" : "c0:39:5a:62:64:c9"
+      }
+   ],
+   "Time" : "07-02-2020 15:18:47"
+}
+
+--myboundary
+Content-Type: image/jpeg
+Content-Length: 0
+
+
+
+--myboundary--

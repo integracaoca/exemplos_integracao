@@ -1,0 +1,27 @@
+{
+   "Events" : [
+      {
+         "Action" : "Pulse",
+         "Code" : "AccessControl",
+         "Data" : {
+            "CardName" : "",
+            "CardNo" : "",
+            "CardType" : 0,
+            "CreateTime" : 1581098913,
+            "Door" : 0,
+            "ErrorCode" : 16,
+            "Method" : 6,
+            "ReaderID" : "1",
+            "Status" : 0,
+            "Type" : "Entry",
+            "UTC" : 1581098913,
+            "UserID" : "",
+            "UserType" : 0,
+            "errortype" : ""
+         },
+         "Index" : 0,
+         "PhysicalAddress" : "c0:39:5a:62:64:c9"
+      }
+   ],
+   "Time" : "07-02-2020 15:08:33"
+}
