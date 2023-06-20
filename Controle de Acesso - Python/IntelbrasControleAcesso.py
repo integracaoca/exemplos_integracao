@@ -52,13 +52,44 @@ class IntelbrasAccessControlAPI:
             return str(result.text)
         except Exception:
             raise Exception("ERROR - During Set Current Time")
+        
+    def get_ntp_config(self) -> dict:
+        try:
+            url = "http://{}/cgi-bin/configManager.cgi?action=getConfig&name=NTP".format(
+                                        str(self.ip)
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
 
+            ntp_config = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return ntp_config
+        except Exception:
+            raise Exception("ERROR - During Get NTP Config")
+        
+    def set_ntp_config(self, address: str, port: str, enable: bool) -> str:
+        try:
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&NTP.Address={}&NTP.Port={}&NTP.Enable={}".format(
+                                        str(self.ip),
+                                        str(address),
+                                        str(port),
+                                        str(enable).lower(),
+                                    )    
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception:
+            raise Exception("ERROR - During Set NTP Config")
+        
     def get_software_version(self) -> str:
         try:
             url = "http://{}/cgi-bin/magicBox.cgi?action=getSoftwareVersion".format(
                                         str(self.ip), 
                                     )
-                
+        
             result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
             raw = result.text.strip().splitlines()
 
@@ -167,6 +198,20 @@ class IntelbrasAccessControlAPI:
             return result
         except Exception:
             raise Exception("ERROR - During Get Software Version")
+        
+    def get_reboot_config(self) -> str:
+        try:
+           url = "http://{}/cgi-bin/magicBox.cgi?action=reboot".format(
+                                        str(self.ip),
+                                     )
+           result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+           
+           if result.status_code != 200:
+               raise Exception()
+           return str(result.text)
+        except Exception:
+            raise Exception("ERROR - During Reboot Device")
+           
 
     ##### Event Server Manager #####
     def set_event_sender_configuration(self, state: bool, server_address: str, port: int, path: str) -> str:
@@ -231,6 +276,139 @@ class IntelbrasAccessControlAPI:
             return str(result.text)
         except Exception as e:
             raise Exception("ERROR - During Close Door - ",e)
+        
+    def set_door_state(self, state: int) -> str:
+        '''
+        0 = Normal/Estado normal de porta
+        1 = CloseAlways/Porta sempre fechada   
+        2 = OpenAlways/Porta sempre aberta
+        '''
+        try:
+            estado = ['Normal','CloseAlways','OpenAlways']
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].State={}".format(
+                                        str(self.ip),
+                                        str(estado[state]),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Door State ")
+    
+    def set_door_sensor_delay(self, CloseTimeout: int) -> str:
+        try: 
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].CloseTimeout={}".format(
+                                        str(self.ip),
+                                        str(CloseTimeout),
+                                )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Change Door Sensor Delay")
+
+    def set_door_sensor_state(self, SensorType: int) -> str: 
+        '''
+        0 = Sempre Aberto
+        1 = Sempre Fechado
+        '''
+        try:
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControlGeneral.SensorType={}".format(
+                                        str(self.ip),
+                                        str(SensorType),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Door Sensor State ")
+
+    def set_door_name(self, Name: str) -> str:
+        try:
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].Name={}".format(
+                                        str(self.ip),
+                                        str(Name),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Door Name Change")
+        
+    def set_sensor_change(self, SensorEnable: bool) -> str:
+        try: 
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].SensorEnable={}".format(
+                                        str(self.ip),
+                                        str(SensorEnable).lower(),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Door Sensor Change ")
+        
+    def set_change_door(self, UnlockHoldInterval: int) -> str:
+        try: 
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].UnlockHoldInterval={}".format(
+                                        str(self.ip),
+                                        str(UnlockHoldInterval),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Change Door")
+        
+    def set_door_verification_method(self, Method: int) -> str: 
+        try: 
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].Method={}".format(
+                                        str(self.ip),
+                                        str(Method),
+                                    ) 
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception as a:
+            raise Exception("ERROR - During Method", a)
+
+    def set_open_timezone(self,OpenAlwaysTime: int) -> str:
+        try:
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].OpenAlwaysTime={}".format(
+                                        str(self.ip),
+                                        str(OpenAlwaysTime),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Open Timezone")
+        
+    def set_close_timezone(self,CloseAlwaysTime: int) -> str:
+        try:
+            url = "http://1{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].CloseAlwaysTime={}".format(
+                                        str(self.ip),
+                                        str(CloseAlwaysTime),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Close Timezone")
 
     def get_door_state(self, door: int) -> str:
         '''
@@ -395,4 +573,6 @@ class IntelbrasAccessControlAPI:
                 data["NaN"] = "NaN"
         return data
 
-api = IntelbrasAccessControlAPI('192.168.3.156', 'admin', 'acesso1234')
+api = IntelbrasAccessControlAPI('192.168.1.201', 'admin', 'acesso1234')
+
+print('Resposta para mudança:', api.set_door_sensor_delay(15))
