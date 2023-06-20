@@ -371,6 +371,20 @@ class IntelbrasAccessControlAPI:
         except Exception :
             raise Exception("ERROR - During Change Door")
         
+    def set_exit_button(self, ButtonExitEnable: bool) -> str:
+        try: 
+            url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControlGeneral.ButtonExitEnable={}".format(
+                                        str(self.ip),
+                                        str(ButtonExitEnable).lower(),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Exit Button")
+        
     def set_door_verification_method(self, Method: int) -> str: 
         try: 
             url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].Method={}".format(
@@ -409,6 +423,21 @@ class IntelbrasAccessControlAPI:
             return str(result.text)
         except Exception :
             raise Exception("ERROR - During Close Timezone")
+        
+    def get_door_config(self) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/configManager.cgi?action=getConfig&name=AccessControlGeneral".format(
+                                        str(self.ip),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Get Door Config ")
 
     def get_door_state(self, door: int) -> str:
         '''
@@ -575,4 +604,4 @@ class IntelbrasAccessControlAPI:
 
 api = IntelbrasAccessControlAPI('192.168.1.201', 'admin', 'acesso1234')
 
-print('Resposta para mudança:', api.set_door_sensor_delay(15))
+print('Resposta para mudança:', api.get_door_config())
