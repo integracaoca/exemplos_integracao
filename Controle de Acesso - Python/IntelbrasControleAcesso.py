@@ -597,10 +597,3 @@ class IntelbrasAccessControlAPI:
             else:
                 data["NaN"] = "NaN"
         return data
-
-api = IntelbrasAccessControlAPI('192.168.3.34', 'admin', 'acesso1234')
-
-print('get_current_time', api.get_current_time())
-print('set_current_time', api.set_current_time())
-print('get_current_time', api.get_current_time())
-print('get_ntp_config', api.get_ntp_config())
