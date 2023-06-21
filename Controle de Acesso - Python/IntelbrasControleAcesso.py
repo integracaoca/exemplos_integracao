@@ -177,7 +177,7 @@ class IntelbrasAccessControlAPI:
                 raise Exception()
             return device_type
         except Exception:
-            raise Exception("ERROR - During Get CGI Version")
+            raise Exception("ERROR - During Get Device Type")
     
     def set_network_config(self, new_ip: str, new_gateway: str, new_mask: str, dhcp: bool) -> str:
         try:
@@ -190,16 +190,14 @@ class IntelbrasAccessControlAPI:
                                     )
                 
             result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
-            
-            result = result.text
 
             if result.status_code != 200:
                 raise Exception()
-            return result
+            return str(result.text)
         except Exception:
-            raise Exception("ERROR - During Get Software Version")
+            raise Exception("ERROR - During Set Network Config")
         
-    def get_reboot_config(self) -> str:
+    def reboot_device(self) -> str:
         try:
            url = "http://{}/cgi-bin/magicBox.cgi?action=reboot".format(
                                         str(self.ip),
@@ -210,8 +208,7 @@ class IntelbrasAccessControlAPI:
                raise Exception()
            return str(result.text)
         except Exception:
-            raise Exception("ERROR - During Reboot Device")
-           
+            raise Exception("ERROR - During Reboot Device") 
 
     ##### Event Server Manager #####
     def set_event_sender_configuration(self, state: bool, server_address: str, port: int, path: str) -> str:
@@ -238,7 +235,6 @@ class IntelbrasAccessControlAPI:
                 return str(result.text)
             except Exception:
                 raise Exception("ERROR - During Set Current Time")
-
 
     ##### Door Config #####
     def open_door(self, door : int) -> str:
@@ -294,8 +290,8 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Door State ")
+        except Exception:
+            raise Exception("ERROR - During Set Door State")
     
     def set_door_sensor_delay(self, CloseTimeout: int) -> str:
         try: 
@@ -308,8 +304,8 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Change Door Sensor Delay")
+        except Exception:
+            raise Exception("ERROR - During Set Door Sensor Delay")
 
     def set_door_sensor_state(self, SensorType: int) -> str: 
         '''
@@ -326,8 +322,8 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Door Sensor State ")
+        except Exception:
+            raise Exception("ERROR - During Door Sensor State")
 
     def set_door_name(self, Name: str) -> str:
         try:
@@ -340,10 +336,10 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Door Name Change")
+        except Exception:
+            raise Exception("ERROR - During Door Name")
         
-    def set_sensor_change(self, SensorEnable: bool) -> str:
+    def enable_door_sensor(self, SensorEnable: bool) -> str:
         try: 
             url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].SensorEnable={}".format(
                                         str(self.ip),
@@ -354,10 +350,10 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Door Sensor Change ")
+        except Exception:
+            raise Exception("ERROR - During Enable Door Sensor ")
         
-    def set_change_door(self, UnlockHoldInterval: int) -> str:
+    def set_door_unlock_interval(self, UnlockHoldInterval: int) -> str:
         try: 
             url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControl[0].UnlockHoldInterval={}".format(
                                         str(self.ip),
@@ -368,10 +364,10 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Change Door")
+        except Exception:
+            raise Exception("ERROR - During Set Unlock Interval")
         
-    def set_exit_button(self, ButtonExitEnable: bool) -> str:
+    def enable_exit_button(self, ButtonExitEnable: bool) -> str:
         try: 
             url = "http://{}/cgi-bin/configManager.cgi?action=setConfig&AccessControlGeneral.ButtonExitEnable={}".format(
                                         str(self.ip),
@@ -382,8 +378,8 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception :
-            raise Exception("ERROR - During Exit Button")
+        except Exception:
+            raise Exception("ERROR - During Enable/Disable Exit Button")
         
     def set_door_verification_method(self, Method: int) -> str: 
         try: 
@@ -395,8 +391,8 @@ class IntelbrasAccessControlAPI:
             if result.status_code != 200:
                 raise Exception()
             return str(result.text)
-        except Exception as a:
-            raise Exception("ERROR - During Method", a)
+        except Exception:
+            raise Exception("ERROR - During set Door Verification Method")
 
     def set_open_timezone(self,OpenAlwaysTime: int) -> str:
         try:
@@ -437,7 +433,7 @@ class IntelbrasAccessControlAPI:
                 raise Exception()
             return data
         except Exception :
-            raise Exception("ERROR - During Get Door Config ")
+            raise Exception("ERROR - During Get Door Config")
 
     def get_door_state(self, door: int) -> str:
         '''
@@ -602,6 +598,9 @@ class IntelbrasAccessControlAPI:
                 data["NaN"] = "NaN"
         return data
 
-api = IntelbrasAccessControlAPI('192.168.1.201', 'admin', 'acesso1234')
+api = IntelbrasAccessControlAPI('192.168.3.34', 'admin', 'acesso1234')
 
-print('Resposta para mudança:', api.get_door_config())
+print('get_current_time', api.get_current_time())
+print('set_current_time', api.set_current_time())
+print('get_current_time', api.get_current_time())
+print('get_ntp_config', api.get_ntp_config())
