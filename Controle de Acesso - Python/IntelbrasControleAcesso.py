@@ -522,7 +522,7 @@ class IntelbrasAccessControlAPI:
         except Exception as e:
             raise Exception("ERROR - During Remove All Users using V2 command - ", e)
 
-    def add_user_v1(self, CardName: str, UserID: int, CardNo: str, CardStatus: int, CardType: int, Password: int, Doors: int) -> dict:
+    def add_user_v1(self, CardName: str, UserID: int, CardNo: str, CardStatus: int, CardType: int, Password: int, Doors: int, ValidDateStart: datetime, ValidDateEnd: datetime) -> dict:
         '''
         CardName: Nome do Usuário / Nome do Cartão
         UserId: Numero de ID do Usuário
@@ -532,6 +532,8 @@ class IntelbrasAccessControlAPI:
         Password: Senha de Acesso, Min 4 - Max 6
         Doors: Portas de Acesso, Default 0
         '''
+        start_time_str = ValidDateStart.strftime('%Y-%m-%d') + '%20' + ValidDateStart.strftime('%H:%M:%S')
+        end_time_str = ValidDateEnd.strftime('%Y%m%d') + '%20' + ValidDateEnd.strftime('%H%M%S')
         try:
             url = "http://{}/cgi-bin/recordUpdater.cgi?action=insert&name=AccessControlCard&CardNo={}&CardStatus={}&CardName={}&UserID={}&Password={}&CardType={}&Doors[0]={}".format(
                                         str(self.ip),
@@ -542,6 +544,8 @@ class IntelbrasAccessControlAPI:
                                         str(Password),
                                         str(CardType),
                                         str(Doors),
+                                        str(start_time_str),
+                                        str(end_time_str),
                                     )
             result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
 
@@ -554,7 +558,252 @@ class IntelbrasAccessControlAPI:
             return data
         except Exception as e:
             raise Exception("ERROR - During Add New User using V1 command - ", e)
+        
+    def add_user_v2(self,  CardName: str, UserID: int, UserType: int, Password: int, Authority: int,  Doors: int, TimeSections: int, ValidDateStart: str , ValidDateEnd: str) -> str:
+            ''''
+            UserID: Numero de ID do usuário
+            CardName: Nome de usuário/Nome do cartão
+            UserType: 0- Geral user, by defaut; 1 - Blocklist user (report the blocklist event ACBlocklist); 2 - Guest user: 3 - Patrol user 4 - VIP user; 5 - Disable user
+            Password: Senha de acesso do usuário
+            Authority: 1 - administrador; 2 - usuário normal
+            Doors: Portas que o usúario terá acesso
+            TimeSections: Zona de tempo de acesso do usuário, padrão: 255
+            ValidDateStart: Data de Inicio de Validade, exemplo: 2019-01-02 00:00:00
+            ValidDateEnd: Data de Final de Validade, exemplo: 2037-01-02 01:00:00
+            '''
+            UserList = (
+                
+            '''{
+                    "UserList": [
+                        {
+                            "UserID": "'''+ str(UserID) +'''",
+                            "UserName": "'''+ str(CardName) +'''",
+                            "UserType": '''+ str(UserType) +''',
+                            "Authority": "'''+ str(Authority) +'''",
+                            "Password": "'''+ str(Password) +'''",
+                            "Doors": "'''+ '[' + str(Doors) + ']' +'''",
+                            "TimeSections": "'''+ '[' + str(TimeSections) + ']' +'''",
+                            "ValidFrom": "'''+ str(ValidDateStart) +'''",
+                            "ValidTo": "'''+ str(ValidDateEnd) +'''"
+                        }
+                    ]
+                }''' )
+            try:
+                url = "http://{}/cgi-bin/AccessUser.cgi?action=insertMulti".format(
+                        str(self.ip),
+                )
+                
+                result = requests.get(url, data=UserList, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+                if result.status_code != 200:
+                    raise Exception()
+                return str(result.text)
+            except Exception:
+                raise Exception("ERROR - During Add New User using V2 command - ")
   
+    def update_user_v2(self,  CardName: str, UserID: int, UserType: int, Password: int, Authority: int,  Doors: int, TimeSections: int, ValidDateStart: str , ValidDateEnd: str) -> str:
+            ''''
+            UserID: Numero de ID do usuário
+            CardName: Nome de usuário/Nome do cartão
+            UserType: 0- Geral user, by defaut; 1 - Blocklist user (report the blocklist event ACBlocklist); 2 - Guest user: 3 - Patrol user 4 - VIP user; 5 - Disable user
+            Password: Senha de acesso do usuário
+            Authority: 1 - administrador; 2 - usuário normal
+            Doors: Portas que o usúario terá acesso
+            TimeSections: Zona de tempo de acesso do usuário, padrão: 255
+            ValidDateStart: Data de Inicio de Validade, exemplo: 2019-01-02 00:00:00
+            ValidDateEnd: Data de Final de Validade, exemplo: 2037-01-02 01:00:00
+            '''
+            UserList = (
+
+            '''{
+                    "UserList": [
+                        {
+                            "UserName": "'''+ str(CardName) +'''",
+                            "UserID": "'''+ str(UserID) +'''",
+                            "UserType": '''+ str(UserType) +''',
+                            "Password": "'''+ str(Password) +'''",
+                            "Authority": "'''+ str(Authority) +'''",
+                            "Doors": "'''+ '[' + str(Doors) + ']' +'''",
+                            "TimeSections": "'''+ '[' + str(TimeSections) + ']' +'''",
+                            "ValidFrom": "'''+ str(ValidDateStart) +'''",
+                            "ValidTo": "'''+ str(ValidDateEnd) +'''"
+                        }
+                    ]
+                }''' )
+            try:
+                url = "http://{}/cgi-bin/AccessUser.cgi?action=updateMulti".format(
+                        str(self.ip),
+                )
+                
+                result = requests.get(url, data=UserList, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+                if result.status_code != 200:
+                    raise Exception()
+                return str(result.text)
+            except Exception:
+                raise Exception("ERROR - During Update User using V2 command - ")
+
+    def get_all_users(self, count: int) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/recordFinder.cgi?action=doSeekFind&name=AccessControlCard&count={}".format(
+                                        str(self.ip),
+                                        str(count),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Get Users")
+    
+    def get_users_count(self) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/recordFinder.cgi?action=getQuerySize&name=AccessUserInfo".format(
+                                        str(self.ip),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Get Users Count")
+    
+    def get_user_cardno(self, CardNoList: str) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/AccessCard.cgi?action=list&CardNoList[0]={}".format(
+                                        str(self.ip),
+                                        str(CardNoList).upper(),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Get Users CardNo")
+        
+    def get_user_recno(self, recno: int) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/recordUpdater.cgi?action=get&name=AccessControlCard&recno={}".format(
+                                        str(self.ip),
+                                        str(recno),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Get Users RecNo")
+        
+    def get_user_id(self, UserIDList: int) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/AccessUser.cgi?action=list&UserIDList[0]={}".format(
+                                        str(self.ip),
+                                        str(UserIDList),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Get Users Id")
+    
+    def set_remove_users_all(self) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/recordUpdater.cgi?action=clear&name=AccessControlCard".format(
+                                        str(self.ip),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Remove All Users")
+        
+    def set_remove_users_recno(self, recno: int) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/recordUpdater.cgi?action=remove&name=AccessControlCard&recno={}".format(
+                                        str(self.ip),
+                                        str(recno),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Remove Users By RecNo")
+        
+    def set_remove_users_id(self, UserIDList: int) -> dict:
+        try: 
+            url = "http://{}/cgi-bin/AccessUser.cgi?action=removeMulti&UserIDList[0]={}".format(
+                                        str(self.ip),
+                                        str(UserIDList),
+                                    )
+            result = requests.get(url, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+            raw = result.text.strip().splitlines()
+
+            data = self._raw_to_dict(raw)
+            if result.status_code != 200:
+                raise Exception()
+            return data
+        except Exception :
+            raise Exception("ERROR - During Remove Users By ID")
+        
+    def add_card_v2(self, UserID: int, CardNo: str, CardType: int, CardStatus: int) -> dict:
+        '''
+        UserID: ID do usuário
+        CardNo: Número do cartão
+        CardType: Tipo do Cartão; 0- Ordinary card; 1- VIP card; 2- Guest card; 3- Patrol card; 4- Blocklist card; 5- Duress card
+        CardStatus: Status do Cartão; 0- Normal; 1- Cancelado; 2- Congelado
+        '''
+        CardList = (
+
+            '''{
+                    "CardList": [
+                        {
+                            "UserID": "'''+ str(UserID) +'''",
+                            "CardNo": "'''+ str(CardNo) +'''",
+                            "CardType": '''+ str(CardType) +''',
+                            "CardStatus": "'''+ str(CardStatus) +'''"
+                        }
+                    ]
+                }''' )
+        
+        try: 
+            url = "http://{}/cgi-bin/AccessCard.cgi?action=insertMulti".format(
+                                        str(self.ip),
+                                        str(UserID),
+                                        str(CardNo).upper(),
+                                        str(CardType),
+                                        str(CardStatus),
+                                    )
+            result = requests.post(url, data= CardList, auth=self.digest_auth, stream=True, timeout=20, verify=False)  # noqa
+
+            if result.status_code != 200:
+                raise Exception()
+            return str(result.text)
+        except Exception :
+            raise Exception("ERROR - During Add Card")
 
     def config_online_mode(self, enable, server_address, port, path_event, device_mode, enable_keepalive, interval_keepalive, path_keepalive, timeout_keepalive, timeout_response) -> bool:
         try:
@@ -602,6 +851,7 @@ class IntelbrasAccessControlAPI:
                 data["NaN"] = "NaN"
         return data
 
-api = IntelbrasAccessControlAPI('192.168.1.201', 'admin', 'acesso1234')
-
-print('Resposta para mudança:', api.get_door_config())
+api = IntelbrasAccessControlAPI('10.1.35.156', 'admin', 'acesso1234')
+# data_final_de_validade = "01/03/2099 12:30"
+# corrigida = datetime.strptime(data_final_de_validade, "%d/%m/%Y %H:%M"   6710bf1e)
+print('Resposta:', api.())
