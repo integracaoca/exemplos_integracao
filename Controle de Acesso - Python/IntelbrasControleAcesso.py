@@ -852,6 +852,5 @@ class IntelbrasAccessControlAPI:
         return data
 
 api = IntelbrasAccessControlAPI('10.1.35.156', 'admin', 'acesso1234')
-# data_final_de_validade = "01/03/2099 12:30"
-# corrigida = datetime.strptime(data_final_de_validade, "%d/%m/%Y %H:%M"   6710bf1e)
-print('Resposta:', api.())
+
+api.get_current_time()
